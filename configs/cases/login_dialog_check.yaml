@@ -1,0 +1,18 @@
+name: login_dialog_check
+app_id: com.example.app
+steps:
+  - action: launch
+  - action: tap
+    target: 登录按钮
+  - action: input
+    target: 用户名
+    value: test_user
+  - action: input
+    target: 密码
+    value: "123456"
+  - action: tap
+    target: 提交
+  - action: wait
+    ms: 1500
+  - action: assert_visible
+    target: 登录成功

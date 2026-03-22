@@ -1,0 +1,6 @@
+name: deep_link_open
+app_id: com.example.app
+steps:
+  - action: launch
+  - action: assert_visible
+    target: 欢迎页

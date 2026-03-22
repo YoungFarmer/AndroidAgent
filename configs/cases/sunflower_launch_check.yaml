@@ -1,0 +1,8 @@
+name: sunflower_launch_check
+app_id: com.google.samples.apps.sunflower
+steps:
+  - action: launch
+  - action: assert_visible
+    target: My garden
+  - action: assert_visible
+    target: Add plant

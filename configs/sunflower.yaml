@@ -1,0 +1,27 @@
+project_path: /Users/liuji/AndroidStudioProjects/sunflower
+gradle_command: ./gradlew
+assemble_task: assembleDebug
+device_serial: emulator-5554
+uninstall_before_install: true
+install_retries: 2
+maestro_cases_dir: /Users/liuji/AndroidStudioProjects/AndroidAgent/configs/cases
+
+app:
+  package_name: com.google.samples.apps.sunflower
+  launch_activity: .GardenActivity
+  deep_link:
+
+execution:
+  default_executor: maestro
+  maestro_bin: maestro
+  adb_bin: adb
+  java_bin: java
+
+instrumentation:
+  enabled: false
+  install_task: installDebugAndroidTest
+
+output:
+  base_dir: /Users/liuji/AndroidStudioProjects/AndroidAgent/outputs
+  runs_subdir: runs
+  reports_subdir: reports

@@ -1,0 +1,10 @@
+name: list_item_click
+app_id: com.example.app
+steps:
+  - action: launch
+  - action: tap
+    target: 列表第一项
+  - action: wait
+    ms: 800
+  - action: assert_visible
+    target: 详情页

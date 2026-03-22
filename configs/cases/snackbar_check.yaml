@@ -1,0 +1,8 @@
+name: snackbar_check
+app_id: com.example.app
+steps:
+  - action: launch
+  - action: tap
+    target: 保存
+  - action: assert_visible
+    target: 保存成功

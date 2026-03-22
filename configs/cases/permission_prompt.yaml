@@ -1,0 +1,8 @@
+name: permission_prompt
+app_id: com.example.app
+steps:
+  - action: launch
+  - action: handle_permission
+    target: 允许|Allow|仅在使用中允许
+  - action: assert_visible
+    target: 首页
