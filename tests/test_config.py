@@ -10,3 +10,25 @@ def test_load_config_resolves_paths() -> None:
     assert config.output.base_dir.name == "outputs"
     assert config.app is not None
     assert config.app.package_name == "com.example.app"
+
+
+def test_load_config_expands_environment_variables(tmp_path: Path, monkeypatch) -> None:
+    android_project = tmp_path / "sunflower"
+    android_project.mkdir()
+    config_path = tmp_path / "env-config.yaml"
+    config_path.write_text(
+        "\n".join(
+            [
+                "project_path: ${ANDROID_PROJECT_PATH}",
+                "maestro_cases_dir: ./cases",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("ANDROID_PROJECT_PATH", str(android_project))
+
+    config = load_config(config_path)
+
+    assert config.project_path == android_project.resolve()
+    assert config.maestro_cases_dir == (tmp_path / "cases").resolve()

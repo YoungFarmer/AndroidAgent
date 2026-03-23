@@ -1,22 +1,22 @@
 # AndroidAgent 使用文档：Sunflower 项目
 
-本文档说明如何在当前机器上安装并使用 `aagent`，并以 `/Users/liuji/AndroidStudioProjects/sunflower` 作为测试项目。
+本文档说明如何在当前机器上安装并使用 `aagent`，并以 `sunflower` 作为测试项目。
 
 ## 1. 当前已确认的信息
 
-- AndroidAgent 仓库路径：`/Users/liuji/AndroidStudioProjects/AndroidAgent`
-- Sunflower 项目路径：`/Users/liuji/AndroidStudioProjects/sunflower`
-- Gradle 入口：`/Users/liuji/AndroidStudioProjects/sunflower/gradlew`
+- AndroidAgent 仓库路径：当前仓库根目录
+- Sunflower 项目路径：默认相对 `configs/sunflower.yaml` 解析到 `../../sunflower`
+- Gradle 入口：`../../sunflower/gradlew`
 - App 包名：`com.google.samples.apps.sunflower`
 - Launcher Activity：`.GardenActivity`
-- Android SDK 本地路径：`/Users/liuji/Library/Android/sdk`
+- Android SDK 本地路径：本机 `ANDROID_HOME` 或 `ANDROID_SDK_ROOT` 对应目录
 - 设备查询结果：截至 `2026-03-22` 本次检查时，`adb devices -l` 没有返回任何已连接设备
 
 这些信息分别来自：
 
-- [app/build.gradle](/Users/liuji/AndroidStudioProjects/sunflower/app/build.gradle)
-- [AndroidManifest.xml](/Users/liuji/AndroidStudioProjects/sunflower/app/src/main/AndroidManifest.xml)
-- [local.properties](/Users/liuji/AndroidStudioProjects/sunflower/local.properties)
+- `app/build.gradle`
+- `app/src/main/AndroidManifest.xml`
+- `local.properties`
 
 ## 2. 安装方式
 
@@ -46,13 +46,13 @@ maestro --version
 进入仓库根目录：
 
 ```bash
-cd /Users/liuji/AndroidStudioProjects/AndroidAgent
+cd /path/to/AndroidAgent
 ```
 
 执行：
 
 ```bash
-python3 -m venv --system-site-packages .venv
+python3 -m venv .venv
 . .venv/bin/activate
 python3 -m pip install -e . --no-build-isolation
 ```
@@ -75,17 +75,21 @@ aagent --help
 
 仓库里已经准备好了 Sunflower 专用配置：
 
-- [sunflower.yaml](/Users/liuji/AndroidStudioProjects/AndroidAgent/configs/sunflower.yaml)
+- `configs/sunflower.yaml`
 
 这个配置已经写好了：
 
-- `project_path=/Users/liuji/AndroidStudioProjects/sunflower`
+- `project_path=../../sunflower`
 - `package_name=com.google.samples.apps.sunflower`
 - `launch_activity=.GardenActivity`
+- `maestro_cases_dir=./cases`
+- `output.base_dir=../outputs`
 
 你通常只需要补一个字段：
 
 - `device_serial`
+
+如果你的 Sunflower 不在这个相对位置，再改成你自己的相对路径，或者改成环境变量写法，例如 `project_path: ${ANDROID_PROJECT_PATH}`。
 
 ### 3.2 Sunflower 的额外说明
 
@@ -139,7 +143,7 @@ adb devices -l
 
 拿到序列号后，编辑：
 
-- [sunflower.yaml](/Users/liuji/AndroidStudioProjects/AndroidAgent/configs/sunflower.yaml)
+- `configs/sunflower.yaml`
 
 把这一行：
 
@@ -164,7 +168,7 @@ device_serial: R5CX123ABC
 下面所有命令都建议在这个目录执行：
 
 ```bash
-cd /Users/liuji/AndroidStudioProjects/AndroidAgent
+cd /path/to/AndroidAgent
 . .venv/bin/activate
 ```
 
@@ -222,7 +226,7 @@ outputs/runs/<run_id>/
 
 仓库中已经有一个适用于 Sunflower 首页的示例 case：
 
-- [sunflower_launch_check.yaml](/Users/liuji/AndroidStudioProjects/AndroidAgent/configs/cases/sunflower_launch_check.yaml)
+- `configs/cases/sunflower_launch_check.yaml`
 
 运行命令：
 
@@ -257,7 +261,7 @@ aagent report --config configs/sunflower.yaml --run-id <run_id>
 
 1. 连接模拟器或真机。
 2. 运行 `adb devices -l`，确认序列号。
-3. 把序列号填进 [sunflower.yaml](/Users/liuji/AndroidStudioProjects/AndroidAgent/configs/sunflower.yaml)。
+3. 把序列号填进 `configs/sunflower.yaml`。
 4. 运行 `aagent doctor --config configs/sunflower.yaml`。
 5. 如果 `doctor` 通过，再运行 `aagent build --config configs/sunflower.yaml`。
 6. 构建安装成功后，运行 `aagent run --config configs/sunflower.yaml --case sunflower_launch_check`。
@@ -275,8 +279,8 @@ aagent report --config configs/sunflower.yaml --run-id <run_id>
 解决方式：
 
 ```bash
-cd /Users/liuji/AndroidStudioProjects/AndroidAgent
-python3 -m venv --system-site-packages .venv
+cd /path/to/AndroidAgent
+python3 -m venv .venv
 . .venv/bin/activate
 python3 -m pip install -e . --no-build-isolation
 ```
@@ -298,8 +302,8 @@ python3 -m pip install -e . --no-build-isolation
 稳定解法就是使用仓库内虚拟环境，并关闭隔离构建：
 
 ```bash
-cd /Users/liuji/AndroidStudioProjects/AndroidAgent
-python3 -m venv --system-site-packages .venv
+cd /path/to/AndroidAgent
+python3 -m venv .venv
 . .venv/bin/activate
 python3 -m pip install -e . --no-build-isolation
 ```
@@ -346,7 +350,7 @@ adb devices -l
 
 ## 8. 相关文件
 
-- 安装和通用说明：[README.md](/Users/liuji/AndroidStudioProjects/AndroidAgent/README.md)
-- Sunflower 配置：[sunflower.yaml](/Users/liuji/AndroidStudioProjects/AndroidAgent/configs/sunflower.yaml)
-- Sunflower 冒烟 case：[sunflower_launch_check.yaml](/Users/liuji/AndroidStudioProjects/AndroidAgent/configs/cases/sunflower_launch_check.yaml)
-- 示例配置：[agent.example.yaml](/Users/liuji/AndroidStudioProjects/AndroidAgent/configs/agent.example.yaml)
+- 安装和通用说明：`README.md`
+- Sunflower 配置：`configs/sunflower.yaml`
+- Sunflower 冒烟 case：`configs/cases/sunflower_launch_check.yaml`
+- 示例配置：`configs/agent.example.yaml`

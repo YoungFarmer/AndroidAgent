@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import os
 from pathlib import Path
 from typing import Any
 
@@ -61,7 +62,8 @@ class ProjectConfig:
 def _as_path(raw: str | None, *, base_dir: Path) -> Path | None:
     if raw is None:
         return None
-    path = Path(raw)
+    expanded = os.path.expanduser(os.path.expandvars(raw))
+    path = Path(expanded)
     if not path.is_absolute():
         path = (base_dir / path).resolve()
     return path

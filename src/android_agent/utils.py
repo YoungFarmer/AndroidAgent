@@ -12,6 +12,14 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
+def project_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def project_path(*parts: str) -> Path:
+    return project_root().joinpath(*parts)
+
+
 def ensure_dir(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path

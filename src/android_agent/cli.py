@@ -8,11 +8,15 @@ from android_agent.doctor import run_doctor
 from android_agent.reporter import write_doctor_report
 from android_agent.run_pipeline import execute_build_only, execute_run, make_run_id
 from android_agent.shell import LocalCommandRunner
-from android_agent.utils import ensure_dir
+from android_agent.utils import ensure_dir, project_path
 
 
 def _default_config_path() -> Path:
-    return Path("configs/agent.example.yaml")
+    return project_path("configs", "agent.example.yaml")
+
+
+def _report_template_path() -> Path:
+    return project_path("templates", "report.md.j2")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -70,7 +74,7 @@ def main() -> int:
         summary = execute_build_only(
             config,
             runner,
-            template_path=Path("templates/report.md.j2"),
+            template_path=_report_template_path(),
             run_id=args.command + "-" + make_run_id("manual"),
         )
         _print_run_summary(summary)
@@ -81,7 +85,7 @@ def main() -> int:
             config,
             runner,
             case_id=args.case,
-            template_path=Path("templates/report.md.j2"),
+            template_path=_report_template_path(),
             run_id=args.run_id,
         )
         _print_run_summary(summary)

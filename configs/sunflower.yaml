@@ -1,10 +1,10 @@
-project_path: /Users/liuji/AndroidStudioProjects/sunflower
+project_path: ../../sunflower
 gradle_command: ./gradlew
 assemble_task: assembleDebug
-device_serial: emulator-5554
+device_serial: 10.236.171.84:36409
 uninstall_before_install: true
 install_retries: 2
-maestro_cases_dir: /Users/liuji/AndroidStudioProjects/AndroidAgent/configs/cases
+maestro_cases_dir: ./cases
 
 app:
   package_name: com.google.samples.apps.sunflower
@@ -22,6 +22,6 @@ instrumentation:
   install_task: installDebugAndroidTest
 
 output:
-  base_dir: /Users/liuji/AndroidStudioProjects/AndroidAgent/outputs
+  base_dir: ../outputs
   runs_subdir: runs
   reports_subdir: reports
