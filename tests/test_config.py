@@ -10,6 +10,9 @@ def test_load_config_resolves_paths() -> None:
     assert config.output.base_dir.name == "outputs"
     assert config.app is not None
     assert config.app.package_name == "com.example.app"
+    assert config.app.test_package_name == "com.example.app.test"
+    assert config.build_retries == 2
+    assert config.launch_retries == 2
 
 
 def test_load_config_expands_environment_variables(tmp_path: Path, monkeypatch) -> None:

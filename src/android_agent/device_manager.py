@@ -4,7 +4,7 @@ from pathlib import Path
 
 from android_agent.config import ProjectConfig
 from android_agent.models import CommandResult, InstallResult, Status
-from android_agent.shell import CommandRunner, persist_command_result
+from android_agent.shell import CommandRunner
 
 
 def _adb_prefix(config: ProjectConfig) -> list[str]:
@@ -19,6 +19,8 @@ def install_and_launch(
     runner: CommandRunner,
     run_dir: Path,
     apk_path: Path,
+    *,
+    deep_link: str | None = None,
 ) -> InstallResult:
     install_log = run_dir / "install.log"
     launch_log = run_dir / "launch.log"
@@ -33,6 +35,9 @@ def install_and_launch(
     if config.uninstall_before_install:
         uninstall_result = runner.run([*adb, "uninstall", config.app.package_name], timeout=60)
         commands.append(uninstall_result)
+        if config.instrumentation.enabled and config.app.test_package_name:
+            uninstall_test_result = runner.run([*adb, "uninstall", config.app.test_package_name], timeout=60)
+            commands.append(uninstall_test_result)
 
     install_result: CommandResult | None = None
     attempts = max(config.install_retries, 1)
@@ -43,7 +48,7 @@ def install_and_launch(
             break
     if install_result is None or not install_result.ok:
         status = Status.FAIL
-        failure_reason = "apk install failed"
+        failure_reason = f"apk install failed: {install_result.merged_output() if install_result else 'no output'}"
 
     merged_install_text = []
     for result in commands:
@@ -53,18 +58,32 @@ def install_and_launch(
     install_log.write_text("\n".join(merged_install_text).strip() + "\n", encoding="utf-8")
 
     launch_result = None
+    launch_attempt_results: list[CommandResult] = []
     if status is Status.PASS:
-        if config.app.deep_link:
-            launch_cmd = [*adb, "shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", config.app.deep_link]
+        launch_target = deep_link or config.app.deep_link
+        if launch_target:
+            launch_cmd = [*adb, "shell", "am", "start", "-W", "-a", "android.intent.action.VIEW", "-d", launch_target]
         elif config.app.launch_activity:
-            launch_cmd = [*adb, "shell", "am", "start", "-n", f"{config.app.package_name}/{config.app.launch_activity}"]
+            launch_cmd = [*adb, "shell", "am", "start", "-W", "-n", f"{config.app.package_name}/{config.app.launch_activity}"]
         else:
             launch_cmd = [*adb, "shell", "monkey", "-p", config.app.package_name, "-c", "android.intent.category.LAUNCHER", "1"]
-        launch_result = runner.run(launch_cmd, timeout=120)
-        persist_command_result(launch_log, launch_result)
+        launch_attempts = max(config.launch_retries, 1)
+        for _ in range(launch_attempts):
+            launch_result = runner.run(launch_cmd, timeout=120)
+            launch_attempt_results.append(launch_result)
+            if launch_result.ok:
+                break
+        merged_launch_text = []
+        for result in launch_attempt_results:
+            merged_launch_text.append(f"$ {' '.join(result.command)}")
+            merged_launch_text.append(result.merged_output())
+            merged_launch_text.append(f"exit_code={result.returncode}")
+            merged_launch_text.append(f"duration_seconds={result.duration_seconds}")
+            merged_launch_text.append("")
+        launch_log.write_text("\n".join(merged_launch_text).strip() + "\n", encoding="utf-8")
         if not launch_result.ok:
             status = Status.FAIL
-            failure_reason = "app launch failed"
+            failure_reason = f"app launch failed: {launch_result.merged_output() or 'no output'}"
     else:
         launch_log.write_text("launch skipped because install failed\n", encoding="utf-8")
 

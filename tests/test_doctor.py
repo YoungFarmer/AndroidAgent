@@ -21,6 +21,7 @@ class FakeRunner:
 def test_doctor_detects_connected_device() -> None:
     config = load_config(Path("configs/agent.example.yaml"))
     report = run_doctor(config, FakeRunner())
+    assert any(check.name == "project_path" and check.status is Status.FAIL for check in report.checks)
     assert report.devices[0].serial == "emulator-5554"
     assert report.devices[0].android_version == "14"
     assert any(check.name == "connected_devices" and check.status in {Status.PASS, Status.WARN} for check in report.checks)

@@ -64,6 +64,14 @@ def run_doctor(config: ProjectConfig, runner: CommandRunner) -> DoctorReport:
         message = resolved if resolved else f"{binary} not found in PATH"
         checks.append(CheckResult(name=f"{name}_binary", status=status, message=message))
 
+    checks.append(
+        CheckResult(
+            name="project_path",
+            status=Status.PASS if config.project_path.exists() else Status.FAIL,
+            message=str(config.project_path) if config.project_path.exists() else f"{config.project_path} does not exist",
+        )
+    )
+
     gradle_path = config.project_path / config.gradle_command
     gradle_available = gradle_path.exists() or shutil.which(config.gradle_command)
     checks.append(

@@ -41,7 +41,13 @@ def execute_run(
     failure_reason = build_result.failure_reason
 
     if build_result.status is Status.PASS and build_result.apk_path:
-        install_result = install_and_launch(config, runner, run_dir, Path(build_result.apk_path))
+        install_result = install_and_launch(
+            config,
+            runner,
+            run_dir,
+            Path(build_result.apk_path),
+            deep_link=case.get("deep_link"),
+        )
         status = install_result.status
         failure_reason = install_result.failure_reason
 

@@ -1,15 +1,18 @@
 project_path: ../sample-android-project
 gradle_command: ./gradlew
 assemble_task: assembleDebug
+build_retries: 2
 device_serial: emulator-5554
 uninstall_before_install: true
 install_retries: 2
+launch_retries: 2
 maestro_cases_dir: ./cases
 
 app:
   package_name: com.example.app
   launch_activity: .MainActivity
   deep_link:
+  test_package_name: com.example.app.test
 
 execution:
   default_executor: maestro

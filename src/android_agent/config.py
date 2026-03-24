@@ -19,6 +19,7 @@ class AppConfig:
     package_name: str
     launch_activity: str | None = None
     deep_link: str | None = None
+    test_package_name: str | None = None
 
 
 @dataclass
@@ -49,8 +50,10 @@ class ProjectConfig:
     project_path: Path
     gradle_command: str = "./gradlew"
     assemble_task: str = "assembleDebug"
+    build_retries: int = 1
     uninstall_before_install: bool = True
     install_retries: int = 1
+    launch_retries: int = 1
     device_serial: str | None = None
     maestro_cases_dir: Path = Path("configs/cases")
     instrumentation: InstrumentationConfig = field(default_factory=InstrumentationConfig)
@@ -85,6 +88,7 @@ def load_config(path: str | Path) -> ProjectConfig:
             package_name=app_raw["package_name"],
             launch_activity=app_raw.get("launch_activity"),
             deep_link=app_raw.get("deep_link"),
+            test_package_name=app_raw.get("test_package_name"),
         )
 
     output = OutputConfig(
@@ -97,8 +101,10 @@ def load_config(path: str | Path) -> ProjectConfig:
         project_path=_as_path(payload["project_path"], base_dir=base_dir) or Path("."),
         gradle_command=payload.get("gradle_command", "./gradlew"),
         assemble_task=payload.get("assemble_task", "assembleDebug"),
+        build_retries=int(payload.get("build_retries", 1)),
         uninstall_before_install=payload.get("uninstall_before_install", True),
         install_retries=int(payload.get("install_retries", 1)),
+        launch_retries=int(payload.get("launch_retries", 1)),
         device_serial=payload.get("device_serial"),
         maestro_cases_dir=_as_path(payload.get("maestro_cases_dir"), base_dir=base_dir) or (base_dir / "cases").resolve(),
         instrumentation=InstrumentationConfig(

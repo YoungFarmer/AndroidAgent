@@ -49,13 +49,42 @@ class LocalCommandRunner:
             )
         except subprocess.TimeoutExpired as exc:
             duration = time.perf_counter() - started
+            stdout = _coerce_text(exc.stdout)
+            stderr = _coerce_text(exc.stderr)
             return CommandResult(
                 command=command,
                 returncode=124,
-                stdout=exc.stdout or "",
-                stderr=(exc.stderr or "") + f"\nCommand timed out after {timeout} seconds.",
+                stdout=stdout,
+                stderr=stderr + f"\nCommand timed out after {timeout} seconds.",
                 duration_seconds=round(duration, 3),
             )
+        except FileNotFoundError as exc:
+            duration = time.perf_counter() - started
+            missing_target = exc.filename or (str(cwd) if cwd else command[0])
+            return CommandResult(
+                command=command,
+                returncode=127,
+                stdout="",
+                stderr=f"Command execution failed because path was not found: {missing_target}",
+                duration_seconds=round(duration, 3),
+            )
+        except OSError as exc:
+            duration = time.perf_counter() - started
+            return CommandResult(
+                command=command,
+                returncode=126,
+                stdout="",
+                stderr=f"Command execution failed: {exc}",
+                duration_seconds=round(duration, 3),
+            )
+
+
+def _coerce_text(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value
 
 
 def persist_command_result(path: Path, result: CommandResult) -> Path:
