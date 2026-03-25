@@ -4,6 +4,7 @@ from pathlib import Path
 
 from android_agent.config import ProjectConfig
 from android_agent.models import BuildResult, Status
+from android_agent.utils import ensure_dir
 from android_agent.shell import CommandRunner, persist_command_result
 
 
@@ -17,8 +18,17 @@ def _find_latest_apk(project_path: Path, pattern: str) -> Path | None:
 
 
 def _find_latest_main_apk(project_path: Path) -> Path | None:
+    patterns = [
+        "**/outputs/apk/**/*.apk",
+        "**/intermediates/apk/**/*.apk",
+    ]
     candidates = sorted(
-        (item for item in project_path.glob("**/outputs/apk/**/*.apk") if "androidTest" not in item.name),
+        (
+            item
+            for pattern in patterns
+            for item in project_path.glob(pattern)
+            if "androidTest" not in item.name
+        ),
         key=lambda item: item.stat().st_mtime,
         reverse=True,
     )
@@ -38,16 +48,22 @@ def _append_command_result(path: Path, result, *, title: str | None = None) -> N
         handle.write(f"duration_seconds={result.duration_seconds}\n")
 
 
+def _gradle_env(config: ProjectConfig) -> dict[str, str]:
+    gradle_home = ensure_dir(config.output.base_dir / ".gradle")
+    return {"GRADLE_USER_HOME": str(gradle_home)}
+
+
 def run_build(config: ProjectConfig, runner: CommandRunner, run_dir: Path) -> BuildResult:
     build_log = run_dir / "build.log"
     command = _split_command(config.gradle_command) + [config.assemble_task]
+    gradle_env = _gradle_env(config)
     attempts = max(config.build_retries, 1)
-    result = runner.run(command, cwd=config.project_path, timeout=1800)
+    result = runner.run(command, cwd=config.project_path, timeout=1800, env=gradle_env)
     persist_command_result(build_log, result)
     for attempt in range(2, attempts + 1):
         if result.ok:
             break
-        retried = runner.run(command, cwd=config.project_path, timeout=1800)
+        retried = runner.run(command, cwd=config.project_path, timeout=1800, env=gradle_env)
         _append_command_result(build_log, retried, title=f"assemble retry {attempt}")
         result = retried
 
@@ -58,6 +74,7 @@ def run_build(config: ProjectConfig, runner: CommandRunner, run_dir: Path) -> Bu
             _split_command(config.gradle_command) + [config.instrumentation.install_task],
             cwd=config.project_path,
             timeout=1800,
+            env=gradle_env,
         )
         _append_command_result(build_log, instrumentation_result, title="instrumentation")
         if instrumentation_result.ok:

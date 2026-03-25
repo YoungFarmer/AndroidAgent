@@ -8,7 +8,7 @@ from android_agent.utils import ensure_dir
 
 
 class FakeRunner:
-    def run(self, command, *, cwd=None, timeout=None):
+    def run(self, command, *, cwd=None, timeout=None, env=None):
         if "screencap" in command:
             return CommandResult(command, 0, "PNGDATA", "", 0.1)
         if "uiautomator" in command:
@@ -36,3 +36,7 @@ def test_maestro_builds_flow_and_returns_steps(tmp_path: Path) -> None:
     assert len(results) == 3
     assert (run_dir / "maestro-flow.yaml").exists()
     assert (run_dir / "test.log").exists()
+    flow_text = (run_dir / "maestro-flow.yaml").read_text(encoding="utf-8")
+    assert "appId: com.example.app" in flow_text
+    assert "\n---\n" in flow_text
+    assert "- launchApp:\n" in flow_text

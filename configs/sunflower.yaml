@@ -1,7 +1,7 @@
-project_path: ../../sunflower
+project_path: /Volumes/MySSD/sunflower
 gradle_command: ./gradlew
 assemble_task: assembleDebug
-device_serial: 10.236.171.84:36409
+device_serial: 10.236.171.84:44405
 uninstall_before_install: true
 install_retries: 2
 maestro_cases_dir: ./cases

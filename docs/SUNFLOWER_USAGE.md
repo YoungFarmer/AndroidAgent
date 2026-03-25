@@ -54,7 +54,7 @@ cd /path/to/AndroidAgent
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
-python3 -m pip install -e . --no-build-isolation
+python3 -m pip install -e .
 ```
 
 安装完成后，验证 CLI 是否可用：
@@ -274,7 +274,7 @@ aagent report --config configs/sunflower.yaml --run-id <run_id>
 原因：
 
 - 没有激活 `.venv`
-- 没有执行 `python3 -m pip install -e . --no-build-isolation`
+- 没有执行 `python3 -m pip install -e .`
 
 解决方式：
 
@@ -282,7 +282,7 @@ aagent report --config configs/sunflower.yaml --run-id <run_id>
 cd /path/to/AndroidAgent
 python3 -m venv .venv
 . .venv/bin/activate
-python3 -m pip install -e . --no-build-isolation
+python3 -m pip install -e .
 ```
 
 如果你想立刻验证，也可以先这样运行：
@@ -296,25 +296,31 @@ python3 -m pip install -e . --no-build-isolation
 这次你遇到的就是这个问题，根因通常是两个叠加：
 
 - `pip` 默认会为 `pyproject.toml` 项目创建隔离构建环境
-- 隔离环境会尝试重新安装 `setuptools` / `wheel`
-- 当前环境离线，或者不能写入用户级 Python 目录
+- 关闭构建隔离后，构建后端本身必须已经能在当前环境导入
+- Python 3.12+ / 3.14 新建 venv 默认往往只有 `pip`，不再自带 `setuptools`
 
-稳定解法就是使用仓库内虚拟环境，并关闭隔离构建：
+当前仓库已经内置了构建后端，因此默认安装方式直接使用：
 
 ```bash
 cd /path/to/AndroidAgent
 python3 -m venv .venv
 . .venv/bin/activate
+python3 -m pip install -e .
+```
+
+如果你仍然想显式加上 `--no-build-isolation`，现在也可以继续这样执行：
+
+```bash
 python3 -m pip install -e . --no-build-isolation
 ```
 
-如果错误里带有 `SSLCertVerificationError`、`certificate verify failed` 或者安装构建依赖 `setuptools` 时失败，可以直接把 `certifi` 的 CA 证书传给 `pip`：
+如果错误里带有 `SSLCertVerificationError`、`certificate verify failed`，可以直接把 `certifi` 的 CA 证书传给 `pip`：
 
 ```bash
 SSL_CERT_FILE=$(python3 -c 'import certifi; print(certifi.where())') python3 -m pip install -e .
 ```
 
-我已经在这台机器上实际验证过，这个命令可以成功安装当前项目。
+如果随后报的是 `Could not find a version that satisfies the requirement PyYAML`，那说明问题已经从“构建后端缺失”变成了“运行时依赖无法下载”，需要检查网络、证书或内部镜像源。
 
 ### 7.3 `doctor` 里设备检测失败
 

@@ -18,13 +18,14 @@
 ## 安装
 
 推荐使用仓库内虚拟环境，尤其是在离线环境或不希望写入全局 Python 目录时。
-在 Homebrew Python 环境下，不建议使用 `--system-site-packages`，否则可能重新落回系统包管理并触发 `externally-managed-environment`。
+在 Homebrew Python 3.12+ / 3.14 环境下，新建 venv 默认通常只有 `pip`，不再自带 `setuptools`。如果直接对依赖 `setuptools.build_meta` 的项目执行 `--no-build-isolation`，常见报错会是 `Cannot import 'setuptools.build_meta'`。当前仓库已经改成自带构建后端，默认安装不需要预装 `setuptools`。
+另外，不建议使用 `--system-site-packages`，否则可能重新落回系统包管理并触发 `externally-managed-environment`。
 
 ```bash
 cd /path/to/AndroidAgent
 python3 -m venv .venv
 . .venv/bin/activate
-python3 -m pip install -e . --no-build-isolation
+python3 -m pip install -e .
 ```
 
 安装完成后，验证 CLI：
@@ -33,11 +34,19 @@ python3 -m pip install -e . --no-build-isolation
 aagent --help
 ```
 
-如果你本机的 `python3 -m pip install -e .` 报了 `SSLCertVerificationError` 或 `Could not find a version that satisfies the requirement setuptools`，可以临时指定 `certifi` 的 CA 证书：
+如果你本机的 `python3 -m pip install -e .` 报了 `SSLCertVerificationError`，可以临时指定 `certifi` 的 CA 证书：
 
 ```bash
 SSL_CERT_FILE=$(python3 -c 'import certifi; print(certifi.where())') python3 -m pip install -e .
 ```
+
+如果你明确需要关闭构建隔离，可以继续使用：
+
+```bash
+python3 -m pip install -e . --no-build-isolation
+```
+
+这一步现在不再要求 venv 里预装 `setuptools`，但运行时依赖 `PyYAML` 仍然需要能从包源安装，或者提前在环境中准备好。
 
 如果你不想激活虚拟环境，也可以直接使用：
 
@@ -127,6 +136,7 @@ aagent doctor --config configs/agent.example.yaml
 
 ```bash
 .venv/bin/aagent build --config configs/agent.example.yaml
+aagent run --config configs/sunflower.yaml --case sunflower_launch_check
 ```
 
 这个命令会执行：

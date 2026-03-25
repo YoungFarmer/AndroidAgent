@@ -3,6 +3,7 @@ from __future__ import annotations
 import subprocess
 import time
 from dataclasses import dataclass
+import os
 from pathlib import Path
 from typing import Protocol
 
@@ -17,6 +18,7 @@ class CommandRunner(Protocol):
         *,
         cwd: Path | None = None,
         timeout: int | None = None,
+        env: dict[str, str] | None = None,
     ) -> CommandResult: ...
 
 
@@ -28,6 +30,7 @@ class LocalCommandRunner:
         *,
         cwd: Path | None = None,
         timeout: int | None = None,
+        env: dict[str, str] | None = None,
     ) -> CommandResult:
         started = time.perf_counter()
         try:
@@ -38,6 +41,7 @@ class LocalCommandRunner:
                 capture_output=True,
                 text=True,
                 timeout=timeout,
+                env={**os.environ, **env} if env else None,
             )
             duration = time.perf_counter() - started
             return CommandResult(

@@ -54,9 +54,14 @@ class MaestroExecutor:
                 commands.extend(converted)
             else:
                 commands.append(converted)
-        flow = {"appId": case.get("app_id") or (self.config.app.package_name if self.config.app else ""), "commands": commands}
+        flow_config = {"appId": case.get("app_id") or (self.config.app.package_name if self.config.app else "")}
         ensure_dir(output_path.parent)
-        output_path.write_text(yaml.safe_dump(flow, sort_keys=False, allow_unicode=True), encoding="utf-8")
+        flow_text = (
+            yaml.safe_dump(flow_config, sort_keys=False, allow_unicode=True).strip()
+            + "\n---\n"
+            + yaml.safe_dump(commands, sort_keys=False, allow_unicode=True)
+        )
+        output_path.write_text(flow_text, encoding="utf-8")
         return output_path
 
     def run_case(self, case: dict, run_dir: Path) -> list[StepResult]:
